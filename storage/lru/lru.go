@@ -65,3 +65,69 @@ func (l *LRU) removeElement(e *list.Element) {
 func (l *LRU) Len() int {
 	return l.evictList.Len()
 }
+
+// Purge completely clears cache
+func (l *LRU) Purge() {
+	for k := range l.items {
+		delete(l.items, k)
+	}
+	l.evictList.Init()
+}
+
+// Get looks up a key's value from the cache
+func (l *LRU) Get(key interface{}) (value interface{}, ok bool) {
+	if ent, ok := l.items[key]; ok {
+		l.evictList.MoveToFront(ent)
+		return ent.Value.(*entry).value, true
+	}
+	return
+}
+
+// Contains check if key is in cache without updating
+// recent-ness or deleting it for being state.
+func (l *LRU) Contains(key interface{}) (ok bool) {
+	_, ok = l.items[key]
+	return ok
+}
+
+// Remove removes prodided key from the cache, returning if the
+// key was contained
+func (l *LRU) Remove(key interface{}) bool {
+	if ent, ok := l.items[key]; ok {
+		l.removeElement(ent)
+		return true
+	}
+	return false
+}
+
+// RemoveOldest removes oldest item from cache
+func (l *LRU) RemoveOldest() (interface{}, interface{}, bool) {
+	ent := l.evictList.Back()
+	if ent != nil {
+		l.removeElement(ent)
+		kv := ent.Value.(*entry)
+		return kv.key, kv.value, true
+	}
+	return nil, nil, false
+}
+
+// GetOldest returns oldest item from cache
+func (l *LRU) GetOldest() (interface{}, interface{}, bool) {
+	ent := l.evictList.Back()
+	if ent != nil {
+		kv := ent.Value.(*entry)
+		return kv.key, kv.value, true
+	}
+	return nil, nil, false
+}
+
+// Keys returns a slice of the keys in the cache
+func (l *LRU) Keys() []interface{} {
+	keys := make([]interface{}, len(l.items))
+	i := 0
+	for ent := l.evictList.Back(); ent != nil; ent = ent.Prev() {
+		keys[i] = ent.Value.(*entry).key
+		i++
+	}
+	return keys
+}
