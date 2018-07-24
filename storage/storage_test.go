@@ -23,7 +23,7 @@ func TestStorage(t *testing.T) {
 	err = s.Delete(driver.ID)
 	assert.NoError(t, err)
 	d, err = s.Get(driver.ID)
-	assert.Equal(t, err, errors.New("Driver does not exist"))
+	assert.Equal(t, err, errors.New("driver does not exist"))
 }
 
 func TestNearest(t *testing.T) {
@@ -42,7 +42,7 @@ func TestNearest(t *testing.T) {
 			Lon: 74.588279,
 		},
 	})
-	drivers, _ := s.Nearest(1000, 42.876420, 74.588332)
+	drivers := s.Nearest(1, 42.876420, 74.588332)
 	assert.Equal(t, len(drivers), 1)
 }
 
@@ -58,6 +58,6 @@ func BenchmarkNearest(b *testing.B) {
 		})
 	}
 	for i := 0; i < b.N; i++ {
-		s.Nearest(1000, 123, 123)
+		s.Nearest(10, 123, 123)
 	}
 }
